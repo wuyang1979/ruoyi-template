@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.mapper.XyMessageUserMapper">
+
+    <resultMap type="XyMessageUser" id="XyMessageUserResult">
+        <result property="id" column="id"/>
+        <result property="msgId" column="msg_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="isRead" column="is_read"/>
+    </resultMap>
+
+    <sql id="selectXyMessageUserVo">
+        select id, msg_id, user_id, dept_id, is_read from xy_message_user
+    </sql>
+
+    <select id="selectXyMessageUserList" parameterType="XyMessageUser" resultMap="XyMessageUserResult">
+        <include refid="selectXyMessageUserVo"/>
+        <where>
+            <if test="msgId != null ">and msg_id = #{msgId}</if>
+            <if test="userId != null ">and user_id = #{userId}</if>
+            <if test="deptId != null ">and dept_id = #{deptId}</if>
+            <if test="isRead != null  and isRead != ''">and is_read = #{isRead}</if>
+        </where>
+    </select>
+
+    <select id="selectXyMessageUserById" parameterType="Long" resultMap="XyMessageUserResult">
+        <include refid="selectXyMessageUserVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertXyMessageUser" parameterType="XyMessageUser" useGeneratedKeys="true" keyProperty="id">
+        insert into xy_message_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="msgId != null">msg_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="isRead != null">is_read,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="msgId != null">#{msgId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="isRead != null">#{isRead},</if>
+        </trim>
+    </insert>
+
+    <update id="updateXyMessageUser" parameterType="XyMessageUser">
+        update xy_message_user
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="msgId != null">msg_id = #{msgId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="isRead != null">is_read = #{isRead},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteXyMessageUserById" parameterType="Long">
+        delete from xy_message_user where id = #{id}
+    </delete>
+
+    <delete id="deleteXyMessageUserByIds" parameterType="String">
+        delete from xy_message_user where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

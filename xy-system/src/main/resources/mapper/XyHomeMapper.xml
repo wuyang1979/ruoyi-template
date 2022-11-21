@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.mapper.XyHomeMapper">
+    <select id="getTotalCount" resultType="com.ruoyi.domain.vo.XyTotalCountVo">
+        select
+            (select count(1) from xy_application_management where del_flag = '0') applicationCount,
+            (select count(1) from xy_supply_product_info where del_flag = '0') handleCount,
+            (select count(1) from xy_enterprise where del_flag = '0' and source ='1') enterpriseCount,
+            (select count(1) from xy_think_tank_policy where del_flag = '0') policyCount,
+            (select count(1) from xy_think_tank_expert where del_flag = '0' and source ='1') expertCount,
+            (select count(1) from xy_think_tank_technology where del_flag = '0') technologyCount
+    </select>
+
+    <select id="orderCount" resultType="com.ruoyi.domain.vo.XyOrderCount">
+        select
+                (select count(1) from xy_supply_handle_order where del_flag = '0') handleCount,
+                (select count(1) from xy_supply_demand_order where del_flag = '0') demandCount
+    </select>
+
+    <select id="getOrderMoney" resultType="com.ruoyi.domain.vo.XyOrderMoneyVo">
+        select platform_price price,
+        date_format(create_time,'%Y-%m-%d') orderTime
+        from xy_supply_handle_order
+        <where>
+            <if test="startTime != null  and startTime != ''">and create_time <![CDATA[ >= ]]> #{startTime}</if>
+            <if test="endTime != null  and endTime != ''">and create_time <![CDATA[ <= ]]> #{endTime}</if>
+            and del_flag = '0'
+        </where>
+        order by create_time
+    </select>
+
+    <select id="getUserActivity" resultType="com.ruoyi.domain.vo.XyUserActivity">
+        select user_name userName,
+        date_format(login_time,'%Y-%m-%d') loginTime
+        from sys_logininfor
+        <where>
+            <if test="startTime != null  and startTime != ''">and login_time <![CDATA[ >= ]]> #{startTime}</if>
+            <if test="endTime != null  and endTime != ''">and login_time <![CDATA[ <= ]]> #{endTime}</if>
+        </where>
+        order by login_time
+    </select>
+
+    <select id="getModuleCount" resultType="com.ruoyi.domain.vo.XyModuleCountVo">
+        select
+                (select count(1) from xy_news where del_flag = '0') newsCount,
+                (select count(1) from xy_park_management where del_flag = '0') parkCount,
+                (select count(1) from xy_application_management where del_flag = '0') appCount
+    </select>
+    <select id="getSupplyCount" resultType="java.lang.Integer">
+        select t.infoCount+t.marketCount as supplyCount
+        from(
+                select
+                        (select count(1) from xy_supply_product_info where del_flag = '0') infoCount,
+                        (select count(1) from xy_supply_demand_market where del_flag = '0') marketCount
+                ) as t
+
+    </select>
+    <select id="getThinkTankCount" resultType="java.lang.Integer">
+        select t.expert+t.policy+t.technology+t.interpret as thinkTankCount
+        from(
+                select
+                        (select count(1) from xy_think_tank_expert where del_flag = '0') expert,
+                        (select count(1) from xy_think_tank_policy where del_flag = '0') policy,
+                        (select count(1) from xy_think_tank_technology where del_flag = '0') technology,
+                        (select count(1) from xy_think_tank_policy_interpret where del_flag = '0') interpret
+            ) as t
+    </select>
+</mapper>

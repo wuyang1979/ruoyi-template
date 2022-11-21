@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.mapper.XyWxMsgMapper">
+
+    <select id="selectByOpenid" resultType="com.ruoyi.domain.XyUser">
+        select
+            openid
+        from xy_user
+        where openid = #{id}
+    </select>
+
+    <insert id="insert">
+        insert into xy_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="nickname != null">user_name,</if>
+            <if test="nickname != null">real_name,</if>
+            <if test="headimgurl != null">headimgurl,</if>
+            <if test="openid != null">openid,</if>
+            source,
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="nickname != null">#{nickname},</if>
+            <if test="nickname != null">#{nickname},</if>
+            <if test="headimgurl != null">#{headimgurl},</if>
+            <if test="openid != null">#{openid},</if>
+            '1',
+            sysdate()
+        </trim>
+    </insert>
+
+    <update id="update">
+        update xy_user
+        set user_name = #{nickname},
+            real_name = #{nickname},
+            headimgurl = #{headimgurl},
+            update_time = sysdate()
+        where openid = #{openid}
+    </update>
+</mapper>

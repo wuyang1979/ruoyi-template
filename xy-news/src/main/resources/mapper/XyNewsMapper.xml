@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.mapper.XyNewsMapper">
+
+    <resultMap type="XyNews" id="XyNewsResult">
+        <result property="id" column="id"/>
+        <result property="newsTypeId" column="news_type_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="author" column="author"/>
+        <result property="source" column="source"/>
+        <result property="type" column="type"/>
+        <result property="coverType" column="cover_type"/>
+        <result property="classify" column="classify"/>
+        <result property="cover" column="cover"/>
+        <result property="introduction" column="introduction"/>
+        <result property="recommend" column="recommend"/>
+        <result property="views" column="views"/>
+        <result property="collects" column="collects"/>
+        <result property="favorites" column="favorites"/>
+        <result property="isTop" column="is_top"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="userId" column="user_id"/>
+        <result property="deptId" column="dept_id"/>
+    </resultMap>
+
+    <sql id="selectXyNewsVo">
+        select id, news_type_id, title, content, author, source, type, classify, cover, cover_type,introduction, recommend, views, collects, favorites, is_top, status, remark, create_by, create_time, update_by, update_time, user_id, dept_id from xy_news
+    </sql>
+
+    <select id="selectXyNewsList" parameterType="XyNews" resultType="com.ruoyi.domain.vo.XyNewsVo">
+        select
+        xn.id,
+        xn.news_type_id as newsTypeId,
+        xnt.type_name as typeName,
+        xn.title,
+        xn.content,
+        xn.author,
+        xn.source,
+        (select dict_label from sys_dict_data where dict_type = 'xy_news_type' and dict_value = xn.type) type,
+        xn.classify,
+        xn.cover,
+        xn.cover_type coverType,
+        xn.introduction,
+        xn.recommend,
+        xn.views,
+        xn.collects,
+        xn.favorites,
+        xn.is_top as isTop,
+        xn.status,
+        (select dict_label from sys_dict_data where dict_type = 'xy_approval_status' and dict_value = xn.status)
+        statusValue,
+        xn.remark,
+        xn.create_time createTime
+        from xy_news xn
+        left join xy_news_type xnt on xn.news_type_id = xnt.id
+        <where>
+            <if test="title != null">and title like concat('%', #{title}, '%')</if>
+            <if test="author != null">and author like concat('%', #{author}, '%')</if>
+            and xn.del_flag = '0'
+            <!-- 数据范围过滤 -->
+            ${params.dataScope}
+        </where>
+        order by xn.create_time desc
+    </select>
+
+    <select id="selectXyNewsById" parameterType="Long" resultMap="XyNewsResult">
+        <include refid="selectXyNewsVo"/>
+        where id = #{id}
+    </select>
+    <select id="selectXyNewsDraftList" resultType="com.ruoyi.domain.vo.XyNewsVo">
+        select
+        xn.id,
+        xn.news_type_id as newsTypeId,
+        xnt.type_name as typeName,
+        xn.title,
+        xn.content,
+        xn.author,
+        xn.source,
+        (select dict_label from sys_dict_data where dict_type = 'xy_news_type' and dict_value = xn.type) type,
+        xn.classify,
+        xn.cover,
+        xn.cover_type coverType,
+        xn.introduction,
+        xn.recommend,
+        xn.views,
+        xn.collects,
+        xn.favorites,
+        xn.is_top as isTop,
+        xn.STATUS,
+        (select dict_label from sys_dict_data where dict_type = 'xy_approval_status' and dict_value = xn.status)
+        statusValue,
+        xn.remark
+        from xy_news xn
+        left join xy_news_type xnt on xn.news_type_id = xnt.id
+        <where>
+            <if test="title != null">and title like concat('%', #{title}, '%')</if>
+            <if test="author != null">and author like concat('%', #{author}, '%')</if>
+            and xn.status = '2'
+            and xn.del_flag = '0'
+        </where>
+        order by xn.create_time desc
+    </select>
+
+    <select id="toReleasedList" resultType="com.ruoyi.domain.vo.XyNewsVo">
+        select
+        xn.id,
+        xn.news_type_id as newsTypeId,
+        xnt.type_name as typeName,
+        xn.title,
+        xn.content,
+        xn.author,
+        xn.source,
+        xn.type,
+        xn.classify,
+        xn.cover,
+        xn.introduction,
+        xn.recommend,
+        xn.views,
+        xn.collects,
+        xn.favorites,
+        xn.is_top as isTop,
+        xn.STATUS,
+        xn.remark
+        from xy_news xn
+        left join xy_news_type xnt on xn.news_type_id = xnt.id
+        <where>
+            <if test="newsTypeId != null">and news_type_id = #{newsTypeId}</if>
+            <if test="title != null">and title = #{title}</if>
+            and (status = '2' or status = '3')
+            and del_flag = '0'
+        </where>
+    </select>
+
+    <select id="selectWxUser" resultType="java.lang.String">
+        select openid
+        from xy_user
+        where source  = '1'
+    </select>
+
+    <insert id="insertXyNews" parameterType="XyNews" useGeneratedKeys="true" keyProperty="id">
+        insert into xy_news
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="newsTypeId != null">news_type_id,</if>
+            <if test="title != null">title,</if>
+            <if test="content != null">content,</if>
+            <if test="author != null">author,</if>
+            <if test="source != null">source,</if>
+            <if test="type != null">type,</if>
+            <if test="classify != null">classify,</if>
+            <if test="cover != null">cover,</if>
+            <if test="coverType != null">cover_type,</if>
+            <if test="introduction != null">introduction,</if>
+            <if test="recommend != null">recommend,</if>
+            <if test="views != null">views,</if>
+            <if test="collects != null">collects,</if>
+            <if test="favorites != null">favorites,</if>
+            <if test="isTop != null">is_top,</if>
+            <if test="status != null">status,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="deptId != null">dept_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="newsTypeId != null">#{newsTypeId},</if>
+            <if test="title != null">#{title},</if>
+            <if test="content != null">#{content},</if>
+            <if test="author != null">#{author},</if>
+            <if test="source != null">#{source},</if>
+            <if test="type != null">#{type},</if>
+            <if test="classify != null">#{classify},</if>
+            <if test="cover != null">#{cover},</if>
+            <if test="coverType != null">#{coverType},</if>
+            <if test="introduction != null">#{introduction},</if>
+            <if test="recommend != null">#{recommend},</if>
+            <if test="views != null">#{views},</if>
+            <if test="collects != null">#{collects},</if>
+            <if test="favorites != null">#{favorites},</if>
+            <if test="isTop != null">#{isTop},</if>
+            <if test="status != null">#{status},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="deptId != null">#{deptId},</if>
+        </trim>
+    </insert>
+    <insert id="rejectApproval">
+        insert into xy_news_approve
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">news_id,</if>
+            <if test="status != null">status,</if>
+            <if test="operateContent != null">operate_content,</if>
+            <if test="remark != null">remark,</if>
+            <if test="approveTime != null">create_time,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="deptId != null">dept_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="status != null">'1',</if>
+            <if test="operateContent != null">#{operateContent},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="approveTime != null">#{approveTime},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="deptId != null">#{deptId},</if>
+        </trim>
+    </insert>
+
+    <insert id="agreeApproval">
+        insert into xy_news_approve
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">news_id,</if>
+            <if test="status != null">status,</if>
+            <if test="operateContent != null">operate_content,</if>
+            <if test="remark != null">remark,</if>
+            <if test="approveTime != null">create_time,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="deptId != null">dept_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="status != null">'3',</if>
+            <if test="operateContent != null">#{operateContent},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="approveTime != null">#{approveTime},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="deptId != null">#{deptId},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertXyNewsApprove">
+        insert into xy_news_approve
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">news_id,</if>
+            <if test="status != null">status,</if>
+            <if test="operateContent != null">operate_content,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="deptId != null">dept_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="status != null">#{status},</if>
+            <if test="operateContent != null">#{operateContent},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="deptId != null">#{deptId},</if>
+        </trim>
+    </insert>
+
+    <insert id="batchInsertAgree">
+        insert into xy_news_approve
+        (
+        news_id,
+        status,
+        operate_content,
+        create_time,
+        user_id,
+        dept_id
+        )
+        values
+        <foreach collection="news" item="item" separator=",">
+            (
+            #{item.id},
+            '3',
+            '【审核通过】操作',
+            now(),
+            #{item.userId},
+            #{item.deptId}
+            )
+        </foreach>
+    </insert>
+    <insert id="batchInsertReject">
+        insert into xy_news_approve
+        (
+        news_id,
+        status,
+        operate_content,
+        create_time,
+        user_id,
+        dept_id
+        )
+        values
+        <foreach collection="news" item="item" separator=",">
+            (
+            #{item.id},
+            '1',
+            '【审核不通过】操作，说明：无',
+            now(),
+            #{item.userId},
+            #{item.deptId}
+            )
+        </foreach>
+    </insert>
+    <insert id="insertNewsApprove">
+        insert into xy_news_approve
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">news_id,</if>
+            <if test="status != null">status,</if>
+            <if test="operateContent != null">operate_content,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="deptId != null">dept_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="status != null">#{status},</if>
+            <if test="operateContent != null">#{operateContent},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="deptId != null">#{deptId},</if>
+        </trim>
+    </insert>
+
+    <update id="updateXyNews" parameterType="XyNews">
+        update xy_news
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="newsTypeId != null">news_type_id = #{newsTypeId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="author != null">author = #{author},</if>
+            <if test="source != null">source = #{source},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="classify != null">classify = #{classify},</if>
+            <if test="cover != null">cover = #{cover},</if>
+            <if test="coverType != null">cover_type = #{coverType},</if>
+            <if test="introduction != null">introduction = #{introduction},</if>
+            <if test="recommend != null">recommend = #{recommend},</if>
+            <if test="views != null">views = #{views},</if>
+            <if test="collects != null">collects = #{collects},</if>
+            <if test="favorites != null">favorites = #{favorites},</if>
+            <if test="isTop != null">is_top = #{isTop},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+    <update id="reject">
+        update xy_news
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="status != null">status = '1',</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="agree">
+        update xy_news
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="status != null">status = '3',</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="release">
+        update xy_news
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="status != null">status = '4',</if>
+            <if test="publishTime != null">publish_time = #{publishTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="cancel">
+        update xy_news
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="status != null">status = '3',</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteXyNewsById" parameterType="Long">
+        delete from xy_news where id = #{id}
+    </delete>
+
+    <delete id="deleteXyNewsByIds" parameterType="String">
+        update xy_news
+        set del_flag = '1'
+        where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="batchAgree">
+        update xy_news
+        set status = '3'
+        where id in
+        <foreach collection="ids" item="item" separator="," open="(" close=")" index="index">
+            #{item}
+        </foreach>
+    </update>
+
+    <update id="batchReject">
+        update xy_news
+        set status = '1'
+        where id in
+        <foreach collection="ids" item="item" separator="," open="(" close=")" index="index">
+            #{item}
+        </foreach>
+    </update>
+
+    <update id="withdraw">
+        update xy_news
+        set status = '5'
+        where id = #{id}
+    </update>
+
+    <update id="recommend">
+        update xy_news
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="recommend != null">recommend = #{recommend},</if>
+            <if test="updateTime != null">update_time = now(),</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="top">
+        update xy_news
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="isTop != null">is_top = #{isTop},</if>
+            <if test="updateTime != null">update_time = now(),</if>
+        </trim>
+        where id = #{id}
+    </update>
+</mapper>

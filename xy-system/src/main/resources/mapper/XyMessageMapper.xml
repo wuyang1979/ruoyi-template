@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.mapper.XyMessageMapper">
+
+    <resultMap type="XyMessage" id="XyMessageResult">
+        <result property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="msgType" column="msg_type"/>
+        <result property="userType" column="user_type"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectXyMessageVo">
+        select id, title, content, msg_type, user_type, status, remark, create_by, create_time, update_by, update_time from xy_message
+    </sql>
+
+    <select id="selectXyMessageList" parameterType="XyMessage" resultType="com.ruoyi.domain.vo.XyMessageVo">
+        SELECT
+        xm.id,
+        xm.title,
+        xm.content,
+        case xm.msg_type
+        when '0' then '系统消息'
+        when '1' then '审核消息'
+        end as msgType,
+        case xm.user_type
+        when '0' then '全部用户'
+        when '1' then '专家用户'
+        when '2' then '企业用户'
+        when '3' then '供应商用户'
+        when '4' then '指定用户'
+        end as userType,
+        xm.STATUS,
+        xm.remark
+        FROM
+        xy_message xm
+        <where>
+            <if test="title != null  and title != ''">and title like concat('%', #{title}, '%')</if>
+            <if test="content != null  and content != ''">and content = #{content}</if>
+            <if test="msgType != null  and msgType != ''">and msg_type = #{msgType}</if>
+            <if test="status != null  and status != ''">and status = #{status}</if>
+            and xm.del_flag = '0'
+        </where>
+        order by xm.create_time desc
+    </select>
+
+    <select id="selectXyMessageById" parameterType="Long" resultMap="XyMessageResult">
+        <include refid="selectXyMessageVo"/>
+        where id = #{id}
+        and del_flag = '0'
+    </select>
+    <select id="selectXyUserList" resultType="com.ruoyi.common.core.domain.entity.SysUser">
+        select
+        user_id userId,
+        user_name userName
+        from xy_user
+        where del_flag = '0'
+        <if test="keyWord != null and keyWord != ''">
+            AND (user_name like concat('%', #{keyWord}, '%') or
+            phonenumber like concat('%', #{keyWord}, '%'))
+        </if>
+    </select>
+    <select id="getAllUserIds" resultType="java.lang.Long">
+        select user_id userId
+        from xy_user
+        where del_flag = '0'
+    </select>
+    <select id="getExpertIds" resultType="java.lang.Long">
+        select user_id userId
+        from xy_user
+        where del_flag = '0' and old_user_type = '1' and approve_status = '1'
+    </select>
+    <select id="getEnterpriseIdList" resultType="java.lang.Long">
+        select user_id userId
+        from xy_user
+        where del_flag = '0' and old_user_type = '2' and approve_status = '1'
+    </select>
+    <select id="getSupplierIds" resultType="java.lang.Long">
+        select u.user_id userId
+        from xy_user u
+        left join xy_enterprise e on u.user_id = e.enterprise_user_id
+        where u.del_flag = '0'
+              and e.is_supplier= '1'
+    </select>
+    <select id="getXyUser" resultType="com.ruoyi.domain.XyUser">
+        select xu.user_id userId,
+               xu.user_name userName,
+               xu.phonenumber phonenumber
+        from xy_user xu
+        left join sys_user su on xu.phonenumber = su.user_name
+        where su.user_id = #{userId}
+    </select>
+    <select id="getXyUserMsg" resultType="com.ruoyi.domain.vo.XyMessageVo">
+        SELECT
+        xm.id,
+        xm.title,
+        xm.content,
+        case xm.msg_type
+        when '0' then '系统消息'
+        when '1' then '审核消息'
+        end as msgType,
+        case xm.user_type
+        when '0' then '全部用户'
+        when '1' then '专家用户'
+        when '2' then '企业用户'
+        when '3' then '供应商用户'
+        when '4' then '指定用户'
+        end as userType,
+        xm.STATUS,
+        xm.remark
+        FROM
+        xy_message xm
+        left join xy_message_user xmu on xm.id = xmu.msg_id
+        <where>
+            <if test="title != null  and title != ''">and xm.title like concat('%', #{title}, '%')</if>
+            and xm.del_flag = '0'
+            and xmu.user_id = #{userId}
+        </where>
+        order by xm.create_time desc
+    </select>
+
+    <insert id="insertXyMessage" parameterType="XyMessage" useGeneratedKeys="true" keyProperty="id">
+        insert into xy_message
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="title != null">title,</if>
+            <if test="content != null">content,</if>
+            <if test="msgType != null">msg_type,</if>
+            <if test="userType != null">user_type,</if>
+            <if test="status != null">status,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="title != null">#{title},</if>
+            <if test="content != null">#{content},</if>
+            <if test="msgType != null">#{msgType},</if>
+            <if test="userType != null">#{userType},</if>
+            <if test="status != null">#{status},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+    <insert id="insertXyMessageUser">
+        insert into xy_message_user(msg_id,user_id)
+        VALUES
+        <foreach collection="userList" item="user" separator=",">
+            (#{user.msgId}, #{user.userId})
+        </foreach>
+
+    </insert>
+
+    <update id="updateXyMessage">
+        update xy_message
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="title != null">title = #{title},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="msgType != null">msg_type = #{msgType},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteXyMessageById" parameterType="Long">
+        delete from xy_message where id = #{id}
+    </delete>
+
+    <delete id="deleteXyMessageByIds" parameterType="String">
+        update xy_message
+        set del_flag = '1'
+        where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <delete id="deleteXyMessageUserById">
+        delete from xy_message_user where msg_id = #{id}
+    </delete>
+</mapper>

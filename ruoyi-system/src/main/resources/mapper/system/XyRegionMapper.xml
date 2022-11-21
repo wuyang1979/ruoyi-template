@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.XyRegionMapper">
+
+    <resultMap type="XyRegion" id="XyRegionResult">
+        <result property="regionId" column="region_id"/>
+        <result property="parentCode" column="parent_code"/>
+        <result property="regionCode" column="region_code"/>
+        <result property="regionName" column="region_name"/>
+        <result property="shortName" column="short_name"/>
+        <result property="level" column="level"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="status" column="status"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectXyRegionVo">
+        select region_id, parent_code, region_code, region_name, short_name, level, order_num, status, del_flag, create_by, create_time, update_by, update_time from xy_region
+    </sql>
+
+    <select id="selectXyRegionList" parameterType="XyRegion" resultMap="XyRegionResult">
+        <include refid="selectXyRegionVo"/>
+        <where>
+            <if test="parentCode != null ">and parent_code = #{parentCode}</if>
+            <if test="regionCode != null ">and region_code = #{regionCode}</if>
+            <if test="regionName != null  and regionName != ''">and region_name like concat('%', #{regionName}, '%')
+            </if>
+            <if test="shortName != null  and shortName != ''">and short_name like concat('%', #{shortName}, '%')</if>
+            <if test="level != null ">and level = #{level}</if>
+            <if test="orderNum != null ">and order_num = #{orderNum}</if>
+            <if test="status != null  and status != ''">and status = #{status}</if>
+        </where>
+    </select>
+
+    <select id="selectXyRegionByRegionId" parameterType="Integer" resultMap="XyRegionResult">
+        <include refid="selectXyRegionVo"/>
+        where region_id = #{regionId}
+    </select>
+    <select id="selectXyRegionLisByParentCode" resultMap="XyRegionResult">
+
+        <include refid="selectXyRegionVo"/>
+        where parent_code = #{parentCode}
+    </select>
+
+    <insert id="insertXyRegion" parameterType="XyRegion" useGeneratedKeys="true" keyProperty="regionId">
+        insert into xy_region
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="parentCode != null">parent_code,</if>
+            <if test="regionCode != null">region_code,</if>
+            <if test="regionName != null and regionName != ''">region_name,</if>
+            <if test="shortName != null">short_name,</if>
+            <if test="level != null">level,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="parentCode != null">#{parentCode},</if>
+            <if test="regionCode != null">#{regionCode},</if>
+            <if test="regionName != null and regionName != ''">#{regionName},</if>
+            <if test="shortName != null">#{shortName},</if>
+            <if test="level != null">#{level},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateXyRegion" parameterType="XyRegion">
+        update xy_region
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="parentCode != null">parent_code = #{parentCode},</if>
+            <if test="regionCode != null">region_code = #{regionCode},</if>
+            <if test="regionName != null and regionName != ''">region_name = #{regionName},</if>
+            <if test="shortName != null">short_name = #{shortName},</if>
+            <if test="level != null">level = #{level},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where region_id = #{regionId}
+    </update>
+
+    <delete id="deleteXyRegionByRegionId" parameterType="Integer">
+        delete from xy_region where region_id = #{regionId}
+    </delete>
+
+    <delete id="deleteXyRegionByRegionIds" parameterType="String">
+        delete from xy_region where region_id in
+        <foreach item="regionId" collection="array" open="(" separator="," close=")">
+            #{regionId}
+        </foreach>
+    </delete>
+</mapper>
